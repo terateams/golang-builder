@@ -1,3 +1,5 @@
+
+ARG TARGETPLATFORM
 FROM --platform=${TARGETPLATFORM:-amd64} golang:latest AS upx_builder
 
 ARG UPX_VERSION=4.2.1

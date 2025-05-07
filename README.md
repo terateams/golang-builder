@@ -68,6 +68,35 @@ upx --version
     upx myapp
     ```
 
+## Dockerfile 示例 (teamsdns)
+
+以下是一个使用此 `golang-builder` 镜像来构建一个名为 `teamsdns` 的 Go 应用的 `Dockerfile` 示例：
+
+```dockerfile
+ARG VERSION
+
+FROM --platform=${TARGETPLATFORM} teamsgpt.azurecr.io/gobuilder:latest AS builder
+
+ARG CGO_ENABLED=0
+
+COPY ./ /root/src/
+WORKDIR /root/src/
+RUN go build -ldflags "-s -w -extldflags '-static' -X main.version=${TARGETPLATFORM}/${VERSION}" -trimpath -o teamsdns
+RUN upx --best --lzma teamsdns
+
+
+FROM --platform=${TARGETPLATFORM} alpine:latest
+
+RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache tzdata
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# 设置缓冲区大小环境变量，默认为 4MB
+ENV TEAMSDNS_BUFFER_SIZE_MB=4
+
+COPY --from=builder /root/src/teamsdns /usr/bin/
+```
+
 ## 贡献
 
 欢迎贡献！请随时提交拉取请求或开启议题。
